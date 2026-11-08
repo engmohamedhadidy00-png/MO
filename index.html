@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>StrideBeat</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0e1116">
+<link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#0e1116;--card:#171c24;--line:#262d38;--tx:#eef1f5;--mu:#8b95a5;--ac:#ff5e3a;--ok:#3ddc97}
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,sans-serif;padding:env(safe-area-inset-top) 12px calc(24px + env(safe-area-inset-bottom))}
+h1{font-size:20px;margin:14px 0 10px}h1 span{color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>*{flex:1}
+button,select,input{font:inherit;color:var(--tx);background:#202734;border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0}
+button{cursor:pointer}button.p{background:var(--ac);border-color:var(--ac);font-weight:600}button.on{border-color:var(--ac);color:var(--ac)}
+button.sm{padding:6px 10px;flex:0 0 auto}
+.big{font-size:56px;font-weight:700;line-height:1}.big small{font-size:16px;color:var(--mu);font-weight:400}
+.mu{color:var(--mu);font-size:13px}.ok{color:var(--ok)}.bad{color:var(--ac)}
+.seg button{border-radius:0}.seg button:first-child{border-radius:10px 0 0 10px}.seg button:last-child{border-radius:0 10px 10px 0}
+.seg{display:flex;gap:0}.seg button{flex:1}
+input[type=range]{width:100%;padding:0}
+.res{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line);cursor:pointer}
+.res img{width:42px;height:42px;border-radius:8px;object-fit:cover;background:#202734;flex:0 0 auto}
+.res div{min-width:0;flex:1}.res b,.res i{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:normal}
+.tag{font-size:12px;color:var(--ac);flex:0 0 auto}
+#yt{display:none;margin-top:8px}details summary{cursor:pointer;color:var(--mu)}
+label{display:block;margin:8px 0 2px}
+</style></head><body>
+<h1>Stride<span>Beat</span></h1>
+
+<div class="card">
+  <div class="row" style="align-items:flex-end">
+    <div><div class="big" id="spm">--<small> steps/min</small></div><div class="mu" id="src">Not connected</div></div>
+    <div style="text-align:right"><div class="big" style="font-size:32px" id="spd">--</div><div class="mu" id="unit">km/h</div></div>
+  </div>
+  <div class="seg" style="margin:12px 0 8px" id="modes">
+    <button data-m="auto" class="on">Treadmill</button><button data-m="speed">Set speed</button><button data-m="cad">Set steps/min</button>
+  </div>
+  <div id="p-auto" class="row"><button class="p" id="bt">Connect Technogym</button><button id="btAll">Show all devices</button></div>
+  <div id="p-speed" hidden>
+    <div class="row"><button class="sm" id="sm">−0.1</button><input type="range" id="sl" min="3" max="22" step="0.1" value="8"><button class="sm" id="sp">+0.1</button></div>
+  </div>
+  <div id="p-cad" hidden>
+    <div class="row"><button class="sm" id="cm">−1</button><input type="range" id="cl" min="100" max="200" step="1" value="170"><button class="sm" id="cp">+1</button></div>
+  </div>
+  <div class="row" style="margin-top:8px"><button id="unitBtn">km/h ⇄ mph</button><button id="cal">Calibrate steps/min</button><button id="click">Click track: off</button></div>
+  <div class="mu" id="btmsg" style="margin-top:6px"></div>
+</div>
+
+<div class="card">
+  <div class="row"><div><b id="tt">Nothing playing</b><div class="mu" id="ta">Search below or pick a file</div></div></div>
+  <div class="mu" id="match" style="margin:6px 0">—</div>
+  <div class="row">
+    <button class="sm" id="bh">½</button><button class="sm" id="bm">−</button>
+    <div style="text-align:center"><b id="bpm">?</b> <span class="mu">track BPM</span></div>
+    <button class="sm" id="bpl">+</button><button class="sm" id="bd">×2</button><button class="sm" id="tap">Tap</button>
+  </div>
+  <div class="row" style="margin-top:8px"><button id="pp" class="p">Play / Pause</button><button id="nx">Next</button><button id="fit">Auto-pick: off</button></div>
+  <div class="row" style="margin-top:8px"><button id="re">Re-detect BPM</button><span class="mu" style="flex:2">Max stretch ±<span id="lv">20</span>%</span><input type="range" id="lim" min="5" max="35" value="20" style="flex:2"></div>
+  <audio id="au" preload="auto" crossorigin="anonymous"></audio>
+  <div id="yt"></div>
+</div>
+
+<div class="card">
+  <div class="seg" id="tabs"><button data-t="audius" class="on">Audius</button><button data-t="jamendo">Jamendo</button><button data-t="yt">YouTube</button><button data-t="file">My files</button></div>
+  <div class="row" style="margin-top:8px" id="sbar"><input id="q" placeholder="Search songs…" style="flex:3"><button id="go" class="p">Search</button></div>
+  <div class="row" style="margin-top:6px" id="sbar2"><button id="pace">Find at my pace</button><button id="sortb">Sort by fit</button></div>
+  <input type="file" id="files" accept="audio/*" multiple hidden>
+  <div class="mu" id="smsg" style="margin:6px 0"></div>
+  <div id="list"></div>
+</div>
+
+<div class="card"><details><summary>Settings &amp; help</summary>
+  <label>Jamendo client ID (free at devportal.jamendo.com)</label><input id="jk" style="width:100%">
+  <label>YouTube Data API key (optional, enables YouTube search)</label><input id="yk" style="width:100%">
+  <label>YouTube / YouTube Music link</label><div class="row"><input id="yl" placeholder="https://music.youtube.com/watch?v=…" style="flex:3"><button id="yg">Play</button></div>
+  <p class="mu">Steps/min is estimated from belt speed. If it feels off, count your steps for 30 s, double it and press Calibrate. If your machine reports real cadence, that is used instead. Matching works on tempo, not beat position: the beat will hold your pace but may land between footfalls; the Click track helps you lock in.</p>
+</details></div>
+
+<script>
+// ==CORE==
+function parseTreadmillData(dv){
+  const f=dv.getUint16(0,true);let o=2;const r={};
+  if(!(f&1)){r.speed=dv.getUint16(o,true)/100;o+=2;}
+  if(f&2)o+=2; if(f&4){r.distance=dv.getUint8(o)|(dv.getUint8(o+1)<<8)|(dv.getUint8(o+2)<<16);o+=3;}
+  if(f&8)o+=4; if(f&16)o+=4; if(f&32)o+=1; if(f&64)o+=1; if(f&128)o+=5;
+  if(f&256){r.hr=dv.getUint8(o);o+=1;} if(f&512)o+=1;
+  if(f&1024){r.elapsed=dv.getUint16(o,true);o+=2;}
+  return r;
+}
+function parseRSC(dv){return{speed:dv.getUint16(1,true)/256*3.6,cadence:dv.getUint8(3)};}
+function cadenceFromSpeed(v,off){off=off||0;if(!(v>0))return 0;
+  const b=v<6.5?88+6.5*v:150+3.5*(v-6);return Math.round(Math.min(210,Math.max(60,b+off)));}
+function pickRate(spm,bpm,limit){
+  let best=null;
+  for(const t of[spm,spm/2])for(const j of[1,.5,2]){
+    const r=t/(bpm*j),d=Math.abs(Math.log(r))+(t!==spm?.05:0)+(j!==1?.03:0);
+    if(!best||d<best.d)best={d,rate:r,half:t!==spm,beat:bpm*j};
+  }
+  best.ok=Math.abs(Math.log(best.rate))<=Math.log(1+limit);return best;
+}
+function estimateBPM(x,sr){
+  const hop=512,win=1024,n=Math.floor((x.length-win)/hop);if(n<300)return null;
+  const a=2*Math.PI*200/sr/(1+2*Math.PI*200/sr);let y=0;const lp=new Float32Array(x.length);
+  for(let i=0;i<x.length;i++){y+=a*(x[i]-y);lp[i]=y;}
+  const e=new Float32Array(n);
+  for(let i=0;i<n;i++){let s=0;const o=i*hop;for(let j=0;j<win;j++){const v=lp[o+j];s+=v*v;}e[i]=Math.sqrt(s/win);}
+  const on=new Float32Array(n);let m=0;
+  for(let i=1;i<n;i++){const d=e[i]-e[i-1];on[i]=d>0?d:0;m+=on[i];}
+  m/=n;for(let i=0;i<n;i++)on[i]-=m;
+  const fps=sr/hop;let best=0,bs=-Infinity;
+  for(let b=70;b<=190;b+=.5){
+    let sc=0;
+    for(let k=1;k<=4;k++){
+      const L=fps*60/b*k,li=Math.floor(L),fr=L-li;if(li+1>=n)break;
+      let s=0,c=0;for(let i=0;i+li+1<n;i++){s+=on[i]*(on[i+li]*(1-fr)+on[i+li+1]*fr);c++;}
+      sc+=s/c;
+    }
+    sc*=Math.exp(-.5*Math.pow(Math.log2(b/120)/.9,2));
+    if(sc>bs){bs=sc;best=b;}
+  }
+  return best;
+}
+// ==/CORE==
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+const S={mode:'auto',speed:0,cadReal:0,mSpeed:8,mCad:170,off:+(ls.get('sb_off')||0),mph:false,limit:.2,target:1,rate:1,track:null,list:[],tab:'audius',autoFit:false,click:false,played:new Set(),connected:false,stopSince:0,auto0:false};
+$('jk').value=ls.get('sb_jk')||'';$('yk').value=ls.get('sb_yk')||'';
+$('jk').onchange=()=>ls.set('sb_jk',$('jk').value.trim());$('yk').onchange=()=>ls.set('sb_yk',$('yk').value.trim());
+
+function curSpeed(){return S.mode==='auto'?S.speed:S.mSpeed;}
+function curSpm(){if(S.mode==='cad')return S.mCad;if(S.mode==='auto'&&S.cadReal>0)return S.cadReal;return cadenceFromSpeed(curSpeed(),S.off);}
+function paused(){return au.paused&&!(S.track&&S.track.src==='yt'&&ytp&&ytp.getPlayerState&&ytp.getPlayerState()===1);}
+
+function refresh(){
+  const spm=curSpm(),v=curSpeed();
+  $('spm').firstChild.nodeValue=spm?spm:'--';
+  $('spd').textContent=v?(S.mph?v/1.609344:v).toFixed(1):'--';$('unit').textContent=S.mph?'mph':'km/h';
+  $('src').textContent=S.mode==='auto'?(S.connected?(S.cadReal>0?'Cadence from treadmill':'Estimated from belt speed'):'Not connected — connect or use Set speed'):S.mode==='speed'?'Estimated from your set speed':'Manual steps/min';
+  const t=S.track;
+  if(t&&t.bpm&&spm){
+    const p=pickRate(spm,t.bpm,S.limit);S.target=p.rate;
+    const pct=((p.rate-1)*100).toFixed(1);
+    $('match').innerHTML=(p.ok?'<span class="ok">Matched</span>':'<span class="bad">Too far from your pace — pick another song</span>')+' · playing at '+(p.rate*100).toFixed(0)+'% speed ('+(p.rate>=1?'+':'')+pct+'%) · beat = '+(p.half?'every 2nd step':'every step');
+  }else $('match').textContent=t?'Set the track BPM (Tap, ± or Re-detect)':'—';
+  $('bpm').textContent=t&&t.bpm?t.bpm.toFixed(1):'?';
+}
+setInterval(()=>{ // smooth rate ramp
+  const d=S.target-S.rate;S.rate+=Math.max(-.012,Math.min(.012,d));
+  const r=Math.max(.5,Math.min(2,S.rate));
+  if(S.track&&S.track.src!=='yt')try{au.playbackRate=r;}catch(e){}
+},250);
+setInterval(()=>{ // youtube coarse rate + belt-stop auto pause
+  if(S.track&&S.track.src==='yt'&&ytp&&ytp.setPlaybackRate){const av=ytp.getAvailablePlaybackRates?ytp.getAvailablePlaybackRates():[1];
+    const r=av.reduce((a,b)=>Math.abs(b-S.target)<Math.abs(a-S.target)?b:a,1);if(ytp.getPlaybackRate()!==r)ytp.setPlaybackRate(r);}
+  if(S.mode==='auto'&&S.connected&&S.track){
+    if(S.speed<.5){if(!S.stopSince)S.stopSince=Date.now();if(Date.now()-S.stopSince>6000&&!paused()){togglePlay(true);S.auto0=true;}}
+    else{S.stopSince=0;if(S.auto0&&paused()){togglePlay(false);}S.auto0=false;}
+  }
+},1000);
+
+// ---------- mode & manual controls
+const au=$('au');au.preservesPitch=true;au.webkitPreservesPitch=true;au.mozPreservesPitch=true;
+$('modes').onclick=e=>{const m=e.target.dataset.m;if(!m)return;S.mode=m;
+  [...$('modes').children].forEach(b=>b.classList.toggle('on',b===e.target));
+  $('p-auto').hidden=m!=='auto';$('p-speed').hidden=m!=='speed';$('p-cad').hidden=m!=='cad';refresh();};
+$('sl').oninput=()=>{S.mSpeed=+$('sl').value;refresh();};
+$('sm').onclick=()=>{S.mSpeed=Math.max(3,+(S.mSpeed-.1).toFixed(1));$('sl').value=S.mSpeed;refresh();};
+$('sp').onclick=()=>{S.mSpeed=Math.min(22,+(S.mSpeed+.1).toFixed(1));$('sl').value=S.mSpeed;refresh();};
+$('cl').oninput=()=>{S.mCad=+$('cl').value;refresh();};
+$('cm').onclick=()=>{S.mCad--;$('cl').value=S.mCad;refresh();};$('cp').onclick=()=>{S.mCad++;$('cl').value=S.mCad;refresh();};
+$('unitBtn').onclick=()=>{S.mph=!S.mph;refresh();};
+$('cal').onclick=()=>{const v=prompt('How many steps per minute are you really doing now? (count steps for 30 s and double it)');
+  const n=parseFloat(v);if(!n||!curSpeed()){alert('Needs a running speed and a number.');return;}
+  S.off=n-cadenceFromSpeed(curSpeed(),0);ls.set('sb_off',S.off);refresh();};
+$('lim').oninput=()=>{S.limit=$('lim').value/100;$('lv').textContent=$('lim').value;refresh();};
+
+// ---------- bluetooth
+let dev=null,tries=0;
+async function connectBT(all){
+  if(!navigator.bluetooth){$('btmsg').textContent='This browser has no Web Bluetooth (iPhone Safari). Use Android Chrome, the Bluefy app on iPhone, or the Set speed mode.';return;}
+  try{
+    const opt=[0x1826,0x1814];
+    dev=await navigator.bluetooth.requestDevice(all?{acceptAllDevices:true,optionalServices:opt}:{filters:[{services:[0x1826]}],optionalServices:opt});
+    dev.addEventListener('gattserverdisconnected',()=>{S.connected=false;refresh();if(tries++<5){$('btmsg').textContent='Lost connection, retrying…';setTimeout(()=>link().catch(()=>{}),2000);}else $('btmsg').textContent='Disconnected.';});
+    tries=0;await link();
+  }catch(e){$('btmsg').textContent='Could not connect: '+(e.message||e)+'. Close the Technogym app first (machines allow one connection), wake the console, or try "Show all devices".';}
+}
+async function link(){
+  const srv=await dev.gatt.connect();
+  const ch=await (await srv.getPrimaryService(0x1826)).getCharacteristic(0x2ACD);
+  ch.addEventListener('characteristicvaluechanged',e=>{const r=parseTreadmillData(e.target.value);if(r.speed!=null){S.speed=r.speed;refresh();}});
+  await ch.startNotifications();
+  try{const c2=await (await srv.getPrimaryService(0x1814)).getCharacteristic(0x2A53);
+    c2.addEventListener('characteristicvaluechanged',e=>{const r=parseRSC(e.target.value);S.cadReal=r.cadence;refresh();});await c2.startNotifications();}catch(e){}
+  S.connected=true;S.mode='auto';$('btmsg').textContent='Connected to '+(dev.name||'treadmill')+'. Start the belt — your pace updates live.';refresh();
+  wake();
+}
+$('bt').onclick=()=>connectBT(false);$('btAll').onclick=()=>connectBT(true);
+let wl=null;async function wake(){try{wl=await navigator.wakeLock.request('screen');}catch(e){}}
+
+// ---------- metronome click
+let ac=null;function beep(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=1000;g.gain.setValueAtTime(.25,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.06);o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+.07);}
+function tick(){if(!S.click)return;const s=curSpm();if(s)beep();setTimeout(tick,60000/(s||120));}
+$('click').onclick=()=>{S.click=!S.click;$('click').textContent='Click track: '+(S.click?'on':'off');$('click').classList.toggle('on',S.click);if(S.click)tick();};
+
+// ---------- playback
+let ytp=null,bpmCache={};
+function setTrackUI(t){$('tt').textContent=t?t.title:'Nothing playing';$('ta').textContent=t?(t.artist||''):'';}
+async function analyse(t,buf){
+  const AC=window.AudioContext||window.webkitAudioContext,c=new AC();
+  try{const ab=await new Promise((res,rej)=>c.decodeAudioData(buf.slice(0),res,rej));
+    const d=ab.getChannelData(0),sr=ab.sampleRate,s=Math.min(Math.floor(sr*15),Math.max(0,d.length-sr*60)),seg=d.subarray(s,Math.min(d.length,s+sr*60));
+    const b=estimateBPM(seg,sr);return b?Math.round(b*10)/10:null;}finally{c.close&&c.close();}
+}
+async function playTrack(t){
+  S.track=t;S.played.add(t.key);setTrackUI(t);S.rate=1;
+  au.pause();if(ytp&&ytp.pauseVideo)try{ytp.pauseVideo();}catch(e){}
+  $('yt').style.display=t.src==='yt'?'block':'none';
+  if(t.src==='yt'){t.bpm=t.bpm||bpmCache[t.key]||null;refresh();S.rate=S.target;await ytLoad(t.id);return;}
+  t.bpm=t.bpm||bpmCache[t.key]||null;refresh();
+  let src=t.url;
+  try{
+    if(t.file){src=URL.createObjectURL(t.file);}
+    if(!t.bpm){
+      $('match').textContent='Analysing tempo…';
+      const buf=t.file?await t.file.arrayBuffer():await (await fetch(t.url)).arrayBuffer();
+      if(!t.file)src=URL.createObjectURL(new Blob([buf],{type:'audio/mpeg'}));
+      t.bpm=await analyse(t,buf);if(t.bpm)bpmCache[t.key]=t.bpm;
+    }
+  }catch(e){if(!t.file)src=t.url;}
+  refresh();S.rate=S.target;
+  au.src=src;au.playbackRate=Math.max(.5,Math.min(2,S.target));
+  try{await au.play();}catch(e){$('match').textContent='Tap Play to start (browser blocked autoplay).';}
+  if('mediaSession'in navigator){navigator.mediaSession.metadata=new MediaMetadata({title:t.title,artist:t.artist||'StrideBeat',artwork:t.art?[{src:t.art}]:[]});
+    navigator.mediaSession.setActionHandler('nexttrack',next);navigator.mediaSession.setActionHandler('play',()=>togglePlay(false));navigator.mediaSession.setActionHandler('pause',()=>togglePlay(true));}
+}
+function togglePlay(forcePause){
+  const yt=S.track&&S.track.src==='yt';
+  if(yt&&ytp){const pl=ytp.getPlayerState()===1;(pl||forcePause===true)?ytp.pauseVideo():ytp.playVideo();return;}
+  if(forcePause===true||(!au.paused&&forcePause!==false))au.pause();else au.play().catch(()=>{});
+}
+$('pp').onclick=()=>{if(!S.track&&S.list.length)playTrack(S.list[0]);else togglePlay();};
+au.addEventListener('ended',next);
+function fitScore(t){const s=curSpm();return t.bpm&&s?Math.abs(Math.log(pickRate(s,t.bpm,1).rate)):9;}
+function next(){
+  if(!S.list.length)return;
+  let c;
+  if(S.autoFit){c=S.list.filter(t=>!S.played.has(t.key)&&t.bpm).sort((a,b)=>fitScore(a)-fitScore(b))[0];}
+  if(!c){const i=S.list.findIndex(t=>S.track&&t.key===S.track.key);c=S.list[(i+1)%S.list.length];}
+  playTrack(c);
+}
+$('nx').onclick=next;
+$('fit').onclick=()=>{S.autoFit=!S.autoFit;$('fit').textContent='Auto-pick: '+(S.autoFit?'on':'off');$('fit').classList.toggle('on',S.autoFit);};
+function setBpm(f){if(!S.track)return;S.track.bpm=Math.max(40,Math.min(240,f(S.track.bpm||120)));bpmCache[S.track.key]=S.track.bpm;refresh();}
+$('bh').onclick=()=>setBpm(b=>b/2);$('bd').onclick=()=>setBpm(b=>b*2);$('bm').onclick=()=>setBpm(b=>+(b-.5).toFixed(1));$('bpl').onclick=()=>setBpm(b=>+(b+.5).toFixed(1));
+let taps=[];$('tap').onclick=()=>{const n=Date.now();if(taps.length&&n-taps[taps.length-1]>2000)taps=[];taps.push(n);taps=taps.slice(-8);
+  if(taps.length>=3){const iv=(taps[taps.length-1]-taps[0])/(taps.length-1);setBpm(()=>Math.round(60000/iv*10)/10);}};
+$('re').onclick=async()=>{const t=S.track;if(!t||t.src==='yt'){alert('Tempo detection needs a playable audio track (not YouTube).');return;}
+  $('match').textContent='Analysing tempo…';
+  try{const buf=t.file?await t.file.arrayBuffer():await (await fetch(t.url)).arrayBuffer();const b=await analyse(t,buf);if(b){t.bpm=b;bpmCache[t.key]=b;}}catch(e){$('match').textContent='Could not analyse this track (blocked by the source). Use Tap.';return;}
+  refresh();};
+
+// ---------- YouTube
+function ytReady(){return new Promise(res=>{if(window.YT&&YT.Player)return res();window.onYouTubeIframeAPIReady=res;const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s);});}
+async function ytLoad(id){await ytReady();$('yt').style.display='block';
+  if(!ytp){ytp=new YT.Player('yt',{height:'180',width:'100%',videoId:id,playerVars:{playsinline:1,autoplay:1},events:{onReady:e=>e.target.playVideo(),onStateChange:e=>{if(e.data===0)next();}}});}
+  else ytp.loadVideoById(id);}
+function ytId(u){const m=String(u).match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);return m?m[1]:null;}
+$('yg').onclick=()=>{const id=ytId($('yl').value);if(!id){alert('Could not find a video ID in that link.');return;}
+  const t={src:'yt',key:'y'+id,id,title:'YouTube video '+id,artist:'YouTube',bpm:null};S.list=[t,...S.list.filter(x=>x.src==='yt')];playTrack(t);};
+
+// ---------- search
+const T=(s,o)=>Object.assign({src:s},o);
+async function searchAudius(q,pace){
+  const p=curSpm(),r=Math.round(p*S.limit*0.6);
+  let u='https://api.audius.co/v1/tracks/'+(q?'search?query='+encodeURIComponent(q)+'&':'trending?')+'limit=30&app_name=StrideBeat';
+  if(pace&&p)u+='&bpm_min='+(p-r)+'&bpm_max='+(p+r);
+  const j=await (await fetch(u)).json();
+  return (j.data||[]).filter(t=>t.is_streamable!==false).map(t=>T('audius',{key:'a'+t.id,id:t.id,title:t.title,artist:t.user&&t.user.name,art:t.artwork&&t.artwork['150x150'],bpm:t.bpm||null,url:'https://api.audius.co/v1/tracks/'+t.id+'/stream?app_name=StrideBeat'}));
+}
+async function searchJamendo(q,pace){
+  const id=$('jk').value.trim();if(!id)throw new Error('Add your free Jamendo client ID in Settings first.');
+  let u='https://api.jamendo.com/v3.0/tracks/?client_id='+encodeURIComponent(id)+'&format=json&limit=30&audioformat=mp32&include=musicinfo'+(q?'&search='+encodeURIComponent(q):'&order=popularity_week');
+  if(pace)u+='&speed=high+veryhigh';
+  const j=await (await fetch(u)).json();
+  return (j.results||[]).map(t=>T('jamendo',{key:'j'+t.id,id:t.id,title:t.name,artist:t.artist_name,art:t.image,bpm:null,url:t.audio}));
+}
+async function searchYT(q,pace){
+  const k=$('yk').value.trim();if(!k)throw new Error('YouTube search needs a free YouTube Data API key (Settings). Or paste a link in Settings.');
+  q=(q||'running music')+(pace?' '+curSpm()+' bpm':'');
+  const j=await (await fetch('https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=25&q='+encodeURIComponent(q)+'&key='+encodeURIComponent(k))).json();
+  if(j.error)throw new Error(j.error.message);
+  return j.items.map(i=>{const m=i.snippet.title.match(/(\d{2,3})\s*bpm/i);return T('yt',{key:'y'+i.id.videoId,id:i.id.videoId,title:i.snippet.title.replace(/&#39;/g,"'").replace(/&amp;/g,'&'),artist:i.snippet.channelTitle,art:i.snippet.thumbnails.default.url,bpm:m?+m[1]:null});});
+}
+function renderList(){
+  $('list').innerHTML=S.list.map((t,i)=>'<div class="res" data-i="'+i+'"><img src="'+esc(t.art||'')+'" alt=""><div><b>'+esc(t.title)+'</b><i class="mu">'+esc(t.artist)+'</i></div><span class="tag">'+(t.bpm?Math.round(t.bpm)+' BPM':'')+'</span></div>').join('');
+}
+$('list').onclick=e=>{const r=e.target.closest('.res');if(r)playTrack(S.list[+r.dataset.i]);};
+async function run(pace){
+  if(S.tab==='file'){$('files').click();return;}
+  $('smsg').textContent='Searching…';
+  try{const f={audius:searchAudius,jamendo:searchJamendo,yt:searchYT}[S.tab];
+    let l=await f($('q').value.trim(),pace);
+    if(!l.length&&pace&&S.tab==='audius'){l=await f($('q').value.trim(),false);$('smsg').textContent='No BPM-filtered results, showing normal results.';}
+    else $('smsg').textContent=l.length?l.length+' results':'No results';
+    S.list=l;renderList();
+  }catch(e){$('smsg').textContent='Search failed: '+(e.message||e);}
+}
+$('go').onclick=()=>run(false);$('pace').onclick=()=>run(true);$('q').onkeydown=e=>{if(e.key==='Enter')run(false);};
+$('sortb').onclick=()=>{S.list.sort((a,b)=>fitScore(a)-fitScore(b));renderList();};
+$('files').onchange=e=>{S.list=[...e.target.files].map(f=>T('file',{key:'f'+f.name+f.size,title:f.name.replace(/\.[^.]+$/,''),artist:'My file',file:f,bpm:bpmCache['f'+f.name+f.size]||null}));renderList();$('smsg').textContent=S.list.length+' files';};
+$('tabs').onclick=e=>{const t=e.target.dataset.t;if(!t)return;S.tab=t;[...$('tabs').children].forEach(b=>b.classList.toggle('on',b===e.target));
+  const f=t==='file';$('sbar').hidden=f;$('pace').textContent=f?'Choose audio files':'Find at my pace';$('go').textContent='Search';
+  if(f)$('pace').onclick=()=>$('files').click();else $('pace').onclick=()=>run(true);
+  $('sortb').hidden=false;$('smsg').textContent=t==='audius'?'Empty search shows trending tracks. BPM comes from the artist metadata.':t==='yt'?'YouTube plays with coarse speed steps (25%). Best for songs already near your pace.':t==='jamendo'?'Free Creative Commons music. BPM is detected when you play a track.':'Songs are analysed on your phone when played.';};
+$('tabs').firstChild.click&&0;
+refresh();
+if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script></body></html>
